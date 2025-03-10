@@ -1,40 +1,42 @@
 let labelMode = "value";  // Options: "category", "value", "percentage"
 
 const values = [5000, 10000, 3000, 7000];
-const firstCategories = ["High Yield", "Global Index", "Bonds", "Value Stocks"];
-const secondCategories = ["Interest", "Shares", "Interest", "Shares"];
-
+const categoryLevels = [
+    ["High Yield", "Bonds", "Global Index", "Value Stocks"], // First level
+    ["Interest", "Interest", "Shares", "Shares"],           // Second level
+    ["Pension", "Pension", "Saving", "Saving"] // Third level (new!)
+];
 // Compute average values upfront
 const totalSum = values.reduce((sum, val) => sum + val, 0);
 const averageValues = values.map(val => val / totalSum * 100);
 
-function buildHierarchy(valuesArray, firstCategories, secondCategories) {
+function buildHierarchy(valuesArray, categoryLevels) {
     let root = { name: "Investments", children: [] };
-    let categoryMap = {};
 
     for (let i = 0; i < valuesArray.length; i++) {
-        let broadCategory = secondCategories[i];
-        let specificCategory = firstCategories[i];
         let value = valuesArray[i];
+        let currentLevel = root;
 
-        if (!categoryMap[broadCategory]) {
-            categoryMap[broadCategory] = {
-                name: broadCategory,
-                children: [],
-                totalValue: 0,
-                count: 0
-            };
-            root.children.push(categoryMap[broadCategory]);
+        // Traverse category levels dynamically
+        for (let level = 0; level < categoryLevels.length; level++) {
+            let category = categoryLevels[level][i];
+
+            // Check if category already exists in the current level
+            let existing = currentLevel.children.find(child => child.name === category);
+            if (!existing) {
+                existing = { name: category, children: [], totalValue: 0 };
+                currentLevel.children.push(existing);
+            }
+
+            // Move deeper in hierarchy
+            currentLevel = existing;
+            currentLevel.totalValue += value;
         }
 
-        categoryMap[broadCategory].children.push({
-            name: specificCategory,
-            value: value
-        });
-
-        categoryMap[broadCategory].totalValue += value;
-        categoryMap[broadCategory].count += 1;
+        // Assign final value to leaf node
+        currentLevel.value = value;
     }
+
     return root;
 }
 
@@ -56,7 +58,7 @@ function setLabelMode(mode) {
 }
 
 // Initial dataset transformation
-let data = buildHierarchy(values, firstCategories, secondCategories);
+let data = buildHierarchy(values, categoryLevels);
 const root = d3.hierarchy(data).sum(d => d.value);
 const width = 600, height = 600;
 const radius = Math.min(width, height) / 2;
@@ -69,8 +71,7 @@ partition(root);
 const svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height)
-    .attr("viewBox", `0 0 ${width} ${height}`)
-    .style("border", "2px solid red");
+    .attr("viewBox", `0 0 ${width} ${height}`);
 
 const svgGroup = svg.append("g")
     .attr("transform", `translate(${width / 2}, ${height / 2})`);
