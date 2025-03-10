@@ -1,7 +1,6 @@
 
 let labelMode = "value";  // Options: "category", "value", "percentage"
 
-
 function getQueryParam(name) {
     const params = new URLSearchParams(window.location.search);
     const rawValue = params.get(name);
@@ -23,6 +22,12 @@ const categoryLevels = getQueryParam("categories") || [
     ["High Yield", "Global Index", "Bonds", "Value Stocks"],
     ["Interest", "Shares", "Interest", "Shares"]
 ];
+
+const categoryGroupNames = getQueryParam("groupNames") || null;
+// Generate default names if none are provided
+const categoryHeaders = categoryGroupNames
+    ? categoryGroupNames
+    : categoryLevels.map((_, i) => `Category ${i + 1}`);
 
 const totalSum = values.reduce((sum, val) => sum + val, 0);
 const averageValues = values.map(val => val / totalSum * 100);
@@ -87,7 +92,7 @@ function updateTable() {
     tableBody.html("");
 
     // Create column headers (category levels + "Value")
-    let columns = [...categoryLevels.keys()].map(i => `Category ${i + 1}`);
+    let columns = [...categoryHeaders]; // Use custom names if available
     columns.push("Value"); // Ensure "Value" column is last
 
     // Append <th> elements correctly inside the single <tr>
