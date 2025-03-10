@@ -1,10 +1,12 @@
 
-const values = [5000, 10000, 3000, 7000];  
+let labelMode = "average";  // Options: "category", "sum", "average"
+
+const values = [5000, 10000, 3000, 7000];
 const firstCategories = ["High Yield", "Global Index", "Bonds", "Value Stocks"];
-const secondCategories = ["Interest", "Shares", "Stock", "Shares"];
+const secondCategories = ["Interest", "Shares", "Interest", "Shares"];
 
 function buildHierarchy(values, firstCategories, secondCategories) {
-    let root = { name: "Investments", children: [] };
+    let root = { name: "Investments", children: [], totalValue: 0 };
     let categoryMap = {};
 
     for (let i = 0; i < values.length; i++) {
@@ -14,13 +16,32 @@ function buildHierarchy(values, firstCategories, secondCategories) {
 
         // Ensure broad category exists
         if (!categoryMap[broadCategory]) {
-            categoryMap[broadCategory] = { name: broadCategory, children: [] };
+            categoryMap[broadCategory] = {
+                name: broadCategory,
+                children: [],
+                totalValue: 0,
+                count: 0
+            };
             root.children.push(categoryMap[broadCategory]);
         }
 
         // Add specific category under broad category
-        categoryMap[broadCategory].children.push({ name: specificCategory, value: value });
+        categoryMap[broadCategory].children.push({
+            name: specificCategory,
+            value: value
+        });
+
+        // Update totals
+        categoryMap[broadCategory].totalValue += value;
+        categoryMap[broadCategory].count += 1;
+        root.totalValue += value;
     }
+
+    // Calculate averages
+    root.children.forEach(category => {
+        category.average = category.count > 0 ? category.totalValue / category.count : 0;
+    });
+
     return root;
 }
 
@@ -91,26 +112,38 @@ const arc = d3.arc()
 
 //5️⃣ Draw Sunburst
 svgGroup.selectAll("path")
-  .data(root.descendants().slice(1))  // Exclude root node
-  .enter().append("path")
-  .attr("d", arc)
-  .style("fill", (d, i) => d3.schemeCategory10[i % 10])  // Color each segment
-  .style("stroke", "#fff");
+    .data(root.descendants().slice(1))  // Exclude root node
+    .enter().append("path")
+    .attr("d", arc)
+    .style("fill", (d, i) => d3.schemeCategory10[i % 10])  // Color each segment
+    .style("stroke", "#fff");
 
-  svgGroup.selectAll("text")
-  .data(root.descendants().slice(1))  // Exclude root node
-  .enter().append("text")
-  .attr("transform", d => {
-      const x = (d.x0 + d.x1) / 2 * 180 / Math.PI;  // Midpoint angle
-      const y = (d.y0 + d.y1) / 2 * radius * 0.8;  // Midpoint radius
-      return `translate(${arc.centroid(d)}) rotate(${x - 90})`;
-  })
-  .attr("dy", "0.35em")  // Align text correctly
-  .attr("text-anchor", "middle")  // Center text alignment
-  .text(d => d.data.name)  // Use category name as label
-  .style("font-size", "12px")
-  .style("fill", "#000")  // Set text color
-  .style("pointer-events", "none");  // Prevent text from blocking hover effects
+    svgGroup.selectAll("text")
+    .data(root.descendants().slice(1))
+    .enter().append("text")
+    .attr("transform", d => {
+        const angle = (d.x0 + d.x1) / 2 * 180 / Math.PI;
+        const inner = d.y0 * radius;
+        const outer = d.y1 * radius;
+        const labelRadius = (inner + outer) / 2;  // Midpoint radius
+  
+        return `translate(${labelRadius * Math.cos((angle - 90) * Math.PI / 180)}, 
+                           ${labelRadius * Math.sin((angle - 90) * Math.PI / 180)}) rotate(${angle - 90})`;
+    })
+    .attr("dy", "0.35em")
+    .attr("text-anchor", "middle")
+    .text(d => {
+        if (labelMode === "category") return d.data.name;
+        if (labelMode === "sum") return d.children ? `${d.data.totalValue}` : `${d.data.value}`;
+        if (labelMode === "average") return d.children ? `${d.data.average.toFixed(2)}` : "";
+        return "";
+    })
+    .style("font-size", "12px")
+    .style("fill", "#000")
+    .style("pointer-events", "none");
+  
+
+
 
 
 
