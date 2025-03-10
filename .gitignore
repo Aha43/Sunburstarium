@@ -1,0 +1,23 @@
+# Node modules (if using npm/yarn)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Dependencies (if you ever install D3 locally)
+*.log
+dist/
+build/
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Live Server settings (if you use it)
+.settings/
+
+# Ignore compiled files (if you later use TypeScript)
+*.tsbuildinfo
