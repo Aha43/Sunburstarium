@@ -77,6 +77,56 @@ function setLabelMode(mode) {
 
 // Initial dataset transformation
 let data = buildHierarchy(values, categoryLevels);
+
+function updateTable() {
+    const tableHeaderRow = d3.select("#table-header"); // This is the <tr>, not <thead>
+    const tableBody = d3.select("#table-body");
+
+    // Clear existing table
+    tableHeaderRow.html("");
+    tableBody.html("");
+
+    // Create column headers (category levels + "Value")
+    let columns = [...categoryLevels.keys()].map(i => `Category ${i + 1}`);
+    columns.push("Value"); // Ensure "Value" column is last
+
+    // Append <th> elements correctly inside the single <tr>
+    tableHeaderRow.selectAll("th")
+        .data(columns)
+        .enter()
+        .append("th")
+        .text(d => d)
+        .style("cursor", (d, i) => i < categoryLevels.length ? "pointer" : "default")
+        .style("padding", "8px")
+        .style("border", "1px solid black")
+        .style("background", "#ddd")
+        .on("click", (_, i) => { if (i < categoryLevels.length) changeCategoryOrder(i); });
+
+    // Append rows
+    values.forEach((val, rowIndex) => {
+        const row = tableBody.append("tr");
+        categoryLevels.forEach(level => {
+            row.append("td")
+                .text(level[rowIndex])
+                .style("padding", "8px")
+                .style("border", "1px solid black");
+        });
+        row.append("td")
+            .text(val)
+            .style("padding", "8px")
+            .style("border", "1px solid black");
+    });
+
+    // Debugging Output
+    console.log("Table Header HTML:", tableHeaderRow.html());
+}
+
+
+
+
+// Call function to populate the table
+updateTable();
+
 const root = d3.hierarchy(data).sum(d => d.value);
 const width = 600, height = 600;
 const radius = Math.min(width, height) / 2;
@@ -96,16 +146,23 @@ const partition = d3.partition().size([2 * Math.PI, 1]);
 partition(root);
 
 // Create SVG
+const svgHeight = height + 80;  // Add extra space for the title
 const svg = d3.select("body").append("svg")
     .attr("width", width)
-    .attr("height", height)
-    .attr("viewBox", `0 0 ${width} ${height}`);
+    .attr("height", svgHeight)
+    .attr("viewBox", `0 0 ${width} ${svgHeight}`);
 
 const svgGroup = svg.append("g")
-    .attr("transform", `translate(${width / 2}, ${height / 2})`);
+    .attr("transform", `translate(${width / 2}, ${height / 2 + 40})`);
 
-
-
+// Append a dedicated group for the title
+const titleGroup = svg.append("g")
+    .attr("transform", `translate(${width / 2}, 30)`);
+titleGroup.append("text")
+    .attr("text-anchor", "middle")
+    .style("font-size", "24px")
+    .style("font-weight", "bold")
+    .text(diagramTitle);
 
 // Arc generator
 const arc = d3.arc()
@@ -113,14 +170,6 @@ const arc = d3.arc()
     .endAngle(d => d.x1)
     .innerRadius(d => d.y0 * radius)
     .outerRadius(d => d.y1 * radius);
-
-// Create title in SVG
-svgGroup.append("text")
-    .attr("text-anchor", "middle")
-    .attr("dy", "-280") // Position title above the sunburst
-    .style("font-size", "24px")
-    .style("font-weight", "bold")
-    .text(diagramTitle);
 
 // Draw Sunburst
 svgGroup.selectAll("path")
@@ -132,9 +181,10 @@ svgGroup.selectAll("path")
     .style("stroke", "#fff");
 
 // Draw Labels
-svgGroup.selectAll("text")
+svgGroup.selectAll(".label-text")
     .data(root.descendants().slice(1))
     .enter().append("text")
+    .attr("class", "label-text")
     .attr("transform", d => {
         const angle = (d.x0 + d.x1) / 2 * 180 / Math.PI;
         const inner = d.y0 * radius;
