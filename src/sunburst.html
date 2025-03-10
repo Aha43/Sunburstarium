@@ -61,12 +61,15 @@
 </head>
 
 <body>
-    <table id="data-table" border="1" cellspacing="0" cellpadding="5" style="margin: 20px auto; border-collapse: collapse;">
-        <thead>
-            <tr id="table-header"></tr> <!-- This should be a row, not the entire <thead> -->
-        </thead>
-        <tbody id="table-body"></tbody>
-    </table>
+    <details>
+        <summary style="cursor: pointer; font-size: 18px; font-weight: bold; padding: 5px;">Show/Hide Table</summary>
+        <table id="data-table" border="1" cellspacing="0" cellpadding="5" style="margin: 20px auto; border-collapse: collapse;">
+            <thead>
+                <tr id="table-header"></tr> <!-- This should be a row, not the entire <thead> -->
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </details>
     
     <script src="js/sunburst.js"></script>
 
