@@ -63,6 +63,16 @@ const root = d3.hierarchy(data).sum(d => d.value);
 const width = 600, height = 600;
 const radius = Math.min(width, height) / 2;
 
+const colorScale = d3.scaleOrdinal(d3.schemeCategory10); // Consistent color scheme
+const categoryColorMap = {}; // Store assigned colors
+
+function getCategoryColor(category) {
+    if (!categoryColorMap[category]) {
+        categoryColorMap[category] = colorScale(Object.keys(categoryColorMap).length);
+    }
+    return categoryColorMap[category];
+}
+
 // Partition layout
 const partition = d3.partition().size([2 * Math.PI, 1]);
 partition(root);
@@ -89,6 +99,7 @@ svgGroup.selectAll("path")
     .enter().append("path")
     .attr("d", arc)
     .style("fill", (d, i) => d3.schemeCategory10[i % 10])
+    .style("fill", d => getCategoryColor(d.data.name))
     .style("stroke", "#fff");
 
 // Draw Labels
