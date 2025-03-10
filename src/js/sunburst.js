@@ -1,20 +1,21 @@
 
-
-
 let labelMode = "value";  // Options: "category", "value", "percentage"
 
-// const values = [5000, 10000, 3000, 7000];
-// const categoryLevels = [
-//     ["High Yield", "Bonds", "Global Index", "Value Stocks"], // First level
-//     ["Interest", "Interest", "Shares", "Shares"],           // Second level
-//     ["Pension", "Pension", "Saving", "Saving"] // Third level (new!)
-// ];
-// Compute average values upfront
 
 function getQueryParam(name) {
     const params = new URLSearchParams(window.location.search);
-    return params.get(name) ? JSON.parse(decodeURIComponent(params.get(name))) : null;
+    const rawValue = params.get(name);
+
+    console.log(`Query param [${name}]:`, rawValue); // Debugging output
+
+    let retVal = rawValue ? JSON.parse(decodeURIComponent(rawValue)) : null;
+
+    console.log(`  Parsed [${name}]:`, retVal); // Debugging output
+    return retVal;
 }
+
+// Extract title from the query string (default: "Sunburst Diagram")
+const diagramTitle = getQueryParam("title") || "Sunburst";
 
 // Extract values & categories from the query string
 const values = getQueryParam("data") || [5000, 10000, 3000, 7000];
@@ -103,12 +104,23 @@ const svg = d3.select("body").append("svg")
 const svgGroup = svg.append("g")
     .attr("transform", `translate(${width / 2}, ${height / 2})`);
 
+
+
+
 // Arc generator
 const arc = d3.arc()
     .startAngle(d => d.x0)
     .endAngle(d => d.x1)
     .innerRadius(d => d.y0 * radius)
     .outerRadius(d => d.y1 * radius);
+
+// Create title in SVG
+svgGroup.append("text")
+    .attr("text-anchor", "middle")
+    .attr("dy", "-280") // Position title above the sunburst
+    .style("font-size", "24px")
+    .style("font-weight", "bold")
+    .text(diagramTitle);
 
 // Draw Sunburst
 svgGroup.selectAll("path")
@@ -163,6 +175,7 @@ svgGroup.selectAll("path")
     .on("mouseout", function () {
         tooltip.style("opacity", 0);
     });
+
 
 // Add UI buttons
 d3.select("body").append("div").html(`
