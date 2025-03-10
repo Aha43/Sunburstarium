@@ -1,29 +1,59 @@
-// Hardcoded hierarchy structure
-const data = {
-    name: "Investments",
-    children: [
-        {
-            name: "Interest",  // Broad category (Outer Ring)
-            children: [
-                { name: "Bonds", value: 3000 },  // Specific investment (Inner Ring)
-                { name: "High Yield", value: 5000 }
-            ]
-        },
-        {
-            name: "Shares",  // Broad category (Outer Ring)
-            children: [
-                { name: "Global Index", value: 10000 },
-                { name: "Value Stocks", value: 7000 }
-            ]
-        },
-        {
-            name: "Stock",  // Broad category (Outer Ring)
-            children: [
-                { name: "Bonds", value: 3000 }  // Shared name to test handling
-            ]
+
+const values = [5000, 10000, 3000, 7000];  
+const firstCategories = ["High Yield", "Global Index", "Bonds", "Value Stocks"];
+const secondCategories = ["Interest", "Shares", "Stock", "Shares"];
+
+function buildHierarchy(values, firstCategories, secondCategories) {
+    let root = { name: "Investments", children: [] };
+    let categoryMap = {};
+
+    for (let i = 0; i < values.length; i++) {
+        let broadCategory = secondCategories[i];  // Outer ring
+        let specificCategory = firstCategories[i];  // Inner ring
+        let value = values[i];
+
+        // Ensure broad category exists
+        if (!categoryMap[broadCategory]) {
+            categoryMap[broadCategory] = { name: broadCategory, children: [] };
+            root.children.push(categoryMap[broadCategory]);
         }
-    ]
-};
+
+        // Add specific category under broad category
+        categoryMap[broadCategory].children.push({ name: specificCategory, value: value });
+    }
+    return root;
+}
+
+// Convert the arrays into hierarchical data
+const data = buildHierarchy(values, firstCategories, secondCategories);
+console.log("Transformed Data:", JSON.stringify(data, null, 2)); // Debugging output
+
+// Hardcoded hierarchy structure
+// const data = {
+//     name: "Investments",
+//     children: [
+//         {
+//             name: "Interest",  // Broad category (Outer Ring)
+//             children: [
+//                 { name: "Bonds", value: 3000 },  // Specific investment (Inner Ring)
+//                 { name: "High Yield", value: 5000 }
+//             ]
+//         },
+//         {
+//             name: "Shares",  // Broad category (Outer Ring)
+//             children: [
+//                 { name: "Global Index", value: 10000 },
+//                 { name: "Value Stocks", value: 7000 }
+//             ]
+//         },
+//         {
+//             name: "Stock",  // Broad category (Outer Ring)
+//             children: [
+//                 { name: "Bonds", value: 3000 }  // Shared name to test handling
+//             ]
+//         }
+//     ]
+// };
 
 // 1️⃣ Create D3 hierarchy
 const root = d3.hierarchy(data).sum(d => d.value);
@@ -66,6 +96,22 @@ svgGroup.selectAll("path")
   .attr("d", arc)
   .style("fill", (d, i) => d3.schemeCategory10[i % 10])  // Color each segment
   .style("stroke", "#fff");
+
+  svgGroup.selectAll("text")
+  .data(root.descendants().slice(1))  // Exclude root node
+  .enter().append("text")
+  .attr("transform", d => {
+      const x = (d.x0 + d.x1) / 2 * 180 / Math.PI;  // Midpoint angle
+      const y = (d.y0 + d.y1) / 2 * radius * 0.8;  // Midpoint radius
+      return `translate(${arc.centroid(d)}) rotate(${x - 90})`;
+  })
+  .attr("dy", "0.35em")  // Align text correctly
+  .attr("text-anchor", "middle")  // Center text alignment
+  .text(d => d.data.name)  // Use category name as label
+  .style("font-size", "12px")
+  .style("fill", "#000")  // Set text color
+  .style("pointer-events", "none");  // Prevent text from blocking hover effects
+
 
 
 console.log("SVG Created:", svg);
