@@ -143,6 +143,27 @@ svgGroup.selectAll("text")
     .style("fill", "#000")
     .style("pointer-events", "none");
 
+// Select the tooltip div
+const tooltip = d3.select("#tooltip");
+
+// Add tooltip event listeners to sunburst paths
+svgGroup.selectAll("path")
+    .on("mouseover", function (event, d) {
+        tooltip.style("opacity", 1)
+            .html(`
+                <strong>${d.data.name}</strong><br>
+                ${labelMode === "value" ? `Value: ${d.data.totalValue || d.data.value}` : ""}
+                ${labelMode === "percentage" ? `(${((d.data.totalValue || d.data.value) / totalSum * 100).toFixed(2)}%)` : ""}
+            `);
+    })
+    .on("mousemove", function (event) {
+        tooltip.style("left", (event.pageX + 10) + "px")
+            .style("top", (event.pageY - 20) + "px");
+    })
+    .on("mouseout", function () {
+        tooltip.style("opacity", 0);
+    });
+
 // Add UI buttons
 d3.select("body").append("div").html(`
     <button onclick="setLabelMode('category')">Show Categories</button>
