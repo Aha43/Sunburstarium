@@ -1,14 +1,31 @@
+
+
+
 let labelMode = "value";  // Options: "category", "value", "percentage"
 
-const values = [5000, 10000, 3000, 7000];
-const categoryLevels = [
-    ["High Yield", "Bonds", "Global Index", "Value Stocks"], // First level
-    ["Interest", "Interest", "Shares", "Shares"],           // Second level
-    ["Pension", "Pension", "Saving", "Saving"] // Third level (new!)
-];
+// const values = [5000, 10000, 3000, 7000];
+// const categoryLevels = [
+//     ["High Yield", "Bonds", "Global Index", "Value Stocks"], // First level
+//     ["Interest", "Interest", "Shares", "Shares"],           // Second level
+//     ["Pension", "Pension", "Saving", "Saving"] // Third level (new!)
+// ];
 // Compute average values upfront
+
+function getQueryParam(name) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name) ? JSON.parse(decodeURIComponent(params.get(name))) : null;
+}
+
+// Extract values & categories from the query string
+const values = getQueryParam("data") || [5000, 10000, 3000, 7000];
+const categoryLevels = getQueryParam("categories") || [
+    ["High Yield", "Global Index", "Bonds", "Value Stocks"],
+    ["Interest", "Shares", "Interest", "Shares"]
+];
+
 const totalSum = values.reduce((sum, val) => sum + val, 0);
 const averageValues = values.map(val => val / totalSum * 100);
+
 
 function buildHierarchy(valuesArray, categoryLevels) {
     let root = { name: "Investments", children: [] };
