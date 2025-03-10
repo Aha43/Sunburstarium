@@ -1,4 +1,4 @@
-let labelMode = "value";  // Options: "category", "number"
+let labelMode = "value";  // Options: "category", "value", "percentage"
 
 const values = [5000, 10000, 3000, 7000];
 const firstCategories = ["High Yield", "Global Index", "Bonds", "Value Stocks"];
@@ -38,8 +38,25 @@ function buildHierarchy(valuesArray, firstCategories, secondCategories) {
     return root;
 }
 
+// Function to update the sunburst visualization
+function updateSunburst() {
+    svgGroup.selectAll("text")
+        .text(d => {
+            if (labelMode === "category") return d.data.name;
+            if (labelMode === "value") return d.children ? `${d.data.totalValue.toFixed(2)}` : `${d.data.value.toFixed(2)}`;
+            if (labelMode === "percentage") return d.children ? `${(d.data.totalValue / totalSum * 100).toFixed(2)}%` : `${(d.data.value / totalSum * 100).toFixed(2)}%`;
+            return "";
+        });
+}
+
+// Function to change label mode and refresh chart
+function setLabelMode(mode) {
+    labelMode = mode;
+    updateSunburst();
+}
+
 // Initial dataset transformation
-let data = buildHierarchy(averageValues, firstCategories, secondCategories);
+let data = buildHierarchy(values, firstCategories, secondCategories);
 const root = d3.hierarchy(data).sum(d => d.value);
 const width = 600, height = 600;
 const radius = Math.min(width, height) / 2;
@@ -90,11 +107,19 @@ svgGroup.selectAll("text")
     .text(d => {
         if (labelMode === "category") return d.data.name;
         if (labelMode === "value") return d.children ? `${d.data.totalValue.toFixed(2)}` : `${d.data.value.toFixed(2)}`;
+        if (labelMode === "percentage") return d.children ? `${(d.data.totalValue / totalSum * 100).toFixed(2)}%` : `${(d.data.value / totalSum * 100).toFixed(2)}%`;
         return "";
     })
     .style("font-size", "12px")
     .style("fill", "#000")
     .style("pointer-events", "none");
+
+// Add UI buttons
+d3.select("body").append("div").html(`
+    <button onclick="setLabelMode('category')">Show Categories</button>
+    <button onclick="setLabelMode('value')">Show Values</button>
+    <button onclick="setLabelMode('percentage')">Show Percentages</button>
+`);
 
 console.log("SVG Created:", svg);
 console.log("Number of Paths:", svg.selectAll("path").size());

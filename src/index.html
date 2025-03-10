@@ -1,36 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <style>
-        html, body {
-          display: flex;
-          justify-content: center;  /* Center horizontally */
-          align-items: center;      /* Center vertically */
-          height: 100vh;            /* Full viewport height */
-          width: 100vw;             /* Full viewport width */
-          margin: 0;
-          padding: 0;
-          overflow: hidden;
-        }
-        svg {
-          position: absolute;
-          left: 50%;
-          top: 50%;
-          transform: translate(-50%, -50%); /* Fully center */
-          display: block;
-        }
-      </style>
-      
-      
-      
-      
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sunburst Lab</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script> 
-    <script src="script.js" defer></script>
+    <title>Sunburst Diagram</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .button-container {
+            margin: 20px 0;
+        }
+        button {
+            padding: 8px 12px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <svg width="600" height="600"></svg>
+
+    <h1>Sunburst Diagram</h1>
+
+    <div class="button-container">
+        <button onclick="setLabelMode('category')">Show Categories</button>
+        <button onclick="setLabelMode('value')">Show Values</button>
+        <button onclick="setLabelMode('percentage')">Show Percentages</button>
+    </div>
+
+    <script src="script.js"></script> 
+
 </body>
 </html>
